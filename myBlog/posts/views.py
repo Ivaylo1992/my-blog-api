@@ -2,24 +2,9 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.decorators import api_view
-
-posts = [
-    {
-        'title': 'Post 1',
-        'content': 'content 1',
-        'author': 'author 1'
-    },
-    {
-        'title': 'Post 2',
-        'content': 'content 2',
-        'author': 'author 2'
-    },
-    {
-        'title': 'Post 3',
-        'content': 'content 3',
-        'author': 'author 3'
-    }
-]
+from myBlog.posts.models import Post
+from myBlog.posts.serializers import PostSerializer
+from django.shortcuts import get_object_or_404
 
 @api_view(['GET', 'POST'])
 def home_page(request: Request):
@@ -41,19 +26,76 @@ def home_page(request: Request):
     return Response(data=response, status=status.HTTP_200_OK)
 
 
-@api_view(['GET'])
+@api_view(['GET', 'POST'])
 def list_posts(request:Request):
-    return Response(data=posts, status=status.HTTP_200_OK)
+    posts = Post.objects.all()
+
+    if request.method == 'POST':
+        data = request.data
+
+        serializer = PostSerializer(data=data)
+
+        if serializer.is_valid():
+            serializer.save()
+
+            response = {
+                'message': 'Post Created',
+                'data': serializer.data
+            }
+
+            return Response(data=response, status=status.HTTP_201_CREATED)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    serializer = PostSerializer(instance=posts, many=True)
+
+    response = {
+        'message': 'posts',
+        'data': serializer.data,
+    }
+
+    return Response(data=response, status=status.HTTP_200_OK)
 
 
 @api_view(['GET'])
-def post_detail(request:Request, post_index:int):
-    post = posts[post_index]
+def post_detail(request:Request, post_id:int):
+    post = get_object_or_404(Post, pk=post_id)
 
-    if post:
-        return Response(data=post, status=status.HTTP_200_OK)
+    serializer = PostSerializer(instance=post)
+
+    response = {
+        'message': 'post',
+        'data': serializer.data
+    }
+
+    return Response(data=response, status=status.HTTP_200_OK)
+
+
+@api_view(['PUT'])
+def update_post(request:Request, post_id:int):
+    post = get_object_or_404(Post, pk=post_id)
+
+    data = request.data
     
-    return Response(
-        data={"error": "Post not found"},
-        status=status.HTTP_404_NOT_FOUND
-    )
+    serializer = PostSerializer(instance=post, data=data)
+
+    if serializer.is_valid():
+        serializer.save()
+
+        response = {
+            'message': 'Post updated successfully',
+            'data': serializer.data
+        }
+        
+        return Response(data=response, status=status.HTTP_201_CREATED)
+    
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)    
+
+
+@api_view(['DELETE'])
+def delete_post(request:Request, post_id:int):
+    post = get_object_or_404(Post, pk=post_id)
+    
+    post.delete()
+
+    return Response(status=status.HTTP_204_NO_CONTENT)
