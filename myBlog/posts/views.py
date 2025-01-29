@@ -83,7 +83,7 @@ def update_post(request:Request, post_id:int):
         serializer.save()
 
         response = {
-            'message': 'Post updated successfully',
+            'message': 'Post updated successfully!',
             'data': serializer.data
         }
         
