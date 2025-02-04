@@ -7,7 +7,8 @@ UserModel = get_user_model()
 
 class SignUpSerializer(serializers.ModelSerializer):
     password = serializers.CharField(
-        write_only=True
+        write_only=True,
+        min_length=8
     )
 
     class Meta:
@@ -23,3 +24,14 @@ class SignUpSerializer(serializers.ModelSerializer):
             )
 
         return super().validate(attrs)
+    
+    def create(self, validated_data):
+        password = validated_data.pop('password')
+
+        user = super().create(validated_data)
+        
+        user.set_password(password)
+        
+        user.save()
+
+        return user
