@@ -45,6 +45,7 @@ INSTALLED_APPS = [
 
     #third party apps
     'rest_framework',
+    'rest_framework.authtoken'
 
 ] + CUSTOM_APPS
 
@@ -61,7 +62,14 @@ MIDDLEWARE = [
 ROOT_URLCONF = 'myBlog.urls'
 
 REST_FRAMEWORK = {
-    'NON_FIELD_ERRORS': 'errors'
+    'NON_FIELD_ERRORS': 'errors',
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ]
 }
 
 TEMPLATES = [

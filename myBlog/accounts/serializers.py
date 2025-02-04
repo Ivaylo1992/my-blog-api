@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from rest_framework.validators import ValidationError
+from rest_framework.authtoken.models import Token
 
 UserModel = get_user_model()
 
@@ -33,5 +34,7 @@ class SignUpSerializer(serializers.ModelSerializer):
         user.set_password(password)
         
         user.save()
+
+        Token.objects.create(user=user)
 
         return user
