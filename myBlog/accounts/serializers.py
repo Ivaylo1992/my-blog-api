@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework.permissions import AllowAny
 from django.contrib.auth import get_user_model
 from rest_framework.validators import ValidationError
 from rest_framework.authtoken.models import Token
@@ -11,6 +12,8 @@ class SignUpSerializer(serializers.ModelSerializer):
         write_only=True,
         min_length=8
     )
+
+    permission_classes = [AllowAny]
 
     class Meta:
         model = UserModel
@@ -38,3 +41,15 @@ class SignUpSerializer(serializers.ModelSerializer):
         Token.objects.create(user=user)
 
         return user
+
+
+class CurrentUserPostsSerializer(serializers.ModelSerializer):
+    posts = serializers.HyperlinkedRelatedField(
+        many=True,
+        view_name='post_retrieve_update_delete',
+        queryset=UserModel.objects.all()
+    )
+
+    class Meta:
+        model = UserModel
+        fields = ['id', 'username', 'email', 'posts']
