@@ -39,7 +39,7 @@ def home_page(request: Request):
 class PostListCreateView(api_views.GenericAPIView, ListModelMixin, CreateModelMixin):
     serializer_class = PostSerializer
     queryset = Post.objects.all()
-    permission_classes = [ReadOnly]
+    permission_classes = [AllowAny]
 
     def perform_create(self, serializer):
         user = self.request.user
