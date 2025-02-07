@@ -10,4 +10,5 @@ urlpatterns = [
         name="post_retrieve_update_delete",
     ),
     path("current_user/", views.get_posts_for_current_user, name="current_user"),
+    path("posts_for/<username>/", views.ListPostsForAuthor.as_view(), name="posts_for_current_user"),
 ]

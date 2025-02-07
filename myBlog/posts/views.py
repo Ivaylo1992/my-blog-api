@@ -13,6 +13,7 @@ from rest_framework.mixins import (
     UpdateModelMixin,
     DestroyModelMixin,
 )
+from rest_framework.generics import GenericAPIView
 from myBlog.accounts.serializers import CurrentUserPostsSerializer
 from myBlog.posts.permissions import ReadOnly, AuthorOrReadOnly
 
@@ -78,3 +79,22 @@ def get_posts_for_current_user(request: Request):
     serializer = CurrentUserPostsSerializer(instance=user, context={"request": request})
 
     return Response(data=serializer.data, status=status.HTTP_200_OK)
+
+
+class ListPostsForAuthor(GenericAPIView,ListModelMixin):
+    queryset = Post.objects.all()
+    serializer_class = PostSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        username = self.request.query_params.get('username', None)
+
+        if username is not None:
+            return Post.objects.filter(author__username=username)
+        
+        return self.queryset.all()
+
+
+    def get(self , request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+    
