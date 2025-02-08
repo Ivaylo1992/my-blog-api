@@ -6,6 +6,7 @@ from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 from django.contrib.auth import authenticate
 from myBlog.accounts.tokens import create_jwt_pair_for_user
+from drf_yasg.utils import swagger_auto_schema
 
 
 class SignUpView(generics.GenericAPIView):
@@ -13,6 +14,10 @@ class SignUpView(generics.GenericAPIView):
 
     permission_classes = [AllowAny]
 
+    @swagger_auto_schema(
+        operation_summary='Create a User account',
+        operation_description='Signs up a user'
+    )
     def post(self, request: Request):
         data = request.data
 
@@ -29,9 +34,12 @@ class SignUpView(generics.GenericAPIView):
 
 
 class LoginView(APIView):
+    permission_classes = [AllowAny]
 
-    permission_classes = []
-
+    @swagger_auto_schema(
+        operation_summary='Generate JWT pair',
+        operation_description='Generates JWT pair'
+    )
     def post(self, request: Request):
         email = request.data.get("email")
         password = request.data.get("password")
@@ -46,6 +54,10 @@ class LoginView(APIView):
 
         return Response(data={"message": "Invalid username or password"})
 
+    @swagger_auto_schema(
+        operation_summary='Get request info',
+        operation_description='Gets request info'
+    )
     def get(self, request: Request):
         content = {"user": str(request.user), "auth": str(request.auth)}
 

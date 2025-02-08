@@ -15,7 +15,8 @@ from rest_framework.mixins import (
 )
 from rest_framework.generics import GenericAPIView
 from myBlog.accounts.serializers import CurrentUserPostsSerializer
-from myBlog.posts.permissions import ReadOnly, AuthorOrReadOnly
+from myBlog.posts.permissions import AuthorOrReadOnly
+from drf_yasg.utils import swagger_auto_schema
 
 
 @api_view(["GET", "POST"])
@@ -47,9 +48,17 @@ class PostListCreateView(api_views.GenericAPIView, ListModelMixin, CreateModelMi
 
         return super().perform_create(serializer=serializer)
 
+    @swagger_auto_schema(
+        operation_summary='List all posts',
+        operation_description='Returns list of all posts'
+    )
     def get(self, request: Request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
 
+    @swagger_auto_schema(
+        operation_summary='Create a post',
+        operation_description='Creates a post'
+    )
     def post(self, request: Request, *args, **kwargs):
         return self.create(request, *args, **kwargs)
 
@@ -62,39 +71,44 @@ class PostRetrieveUpdateDeleteView(
     queryset = Post.objects.all()
     permission_classes = [AuthorOrReadOnly]
 
+    @swagger_auto_schema(
+        operation_summary='Retrieve a post by id',
+        operation_description='Retrieves a post by an id'
+    )
     def get(self, request: Request, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)
 
+    @swagger_auto_schema(
+        operation_summary='Update a post by id',
+        operation_description='Updates a post by an id'
+    )
     def put(self, request: Request, *args, **kwargs):
         return self.update(request, *args, **kwargs)
 
+    @swagger_auto_schema(
+        operation_summary='Delete a post by id',
+        operation_description='Deletes a post by an id'
+    )
     def delete(self, request: Request, *args, **kwargs):
         return self.destroy(request, *args, **kwargs)
 
 
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
-def get_posts_for_current_user(request: Request):
-    user = request.user
-    serializer = CurrentUserPostsSerializer(instance=user, context={"request": request})
-
-    return Response(data=serializer.data, status=status.HTTP_200_OK)
-
-
-class ListPostsForAuthor(GenericAPIView,ListModelMixin):
+class ListPostsForAuthor(GenericAPIView, ListModelMixin):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        username = self.request.query_params.get('username', None)
+        username = self.request.query_params.get("username", None)
 
         if username is not None:
             return Post.objects.filter(author__username=username)
-        
+
         return self.queryset.all()
 
-
-    def get(self , request, *args, **kwargs):
+    @swagger_auto_schema(
+        operation_summary='Retrieve a post by a given user',
+        operation_description='Retrieve a post by a given user'
+    )
+    def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
-    
