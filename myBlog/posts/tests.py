@@ -16,23 +16,35 @@ class HelloWordTest(APITestCase):
 
         
 
-
 class PostListCreateTest(APITestCase):
     def setUp(self):
-        self.factory = APIRequestFactory()
-        self.view = PostListCreateView.as_view()
         self.url = reverse('all_posts')
 
-        self.user = UserModel.objects.create(
-            username='TestUser',
-            email='test@user.com',
-            password='password123'
+    def authenticate(self):
+        self.client.post(
+            reverse('signup'),
+            data= {
+                'email': 'test@app.com',
+                'password': 'password123##',
+                'username': 'testUser'
+            }
         )
-    
-    def test_list_post(self):
-        request = self.factory.get(self.url)
 
-        response = self.view(request)
+        response = self.client.post(
+            reverse('login'),
+            data= {
+                'email': 'test@app.com',
+                'password': 'password123##'
+            }
+        )
+
+        token = response.data['tokens']['access']
+
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
+
+    def test_list_post(self):
+
+        response = self.client.get(self.url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['count'], 0)
@@ -40,15 +52,25 @@ class PostListCreateTest(APITestCase):
         
 
     def test_post_creation(self):
-        sample_post = {
+        self.authenticate()
+
+        sample_data = {
             'title': 'sample title',
-            'content': 'sample content'
+            'content': 'sample title'
         }
 
+        response = self.client.post(
+            self.url,
+            sample_data
+        )
 
-        request = self.factory.post(self.url, sample_post)
-        request.user = self.user
 
-        response = self.view(request)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_201_CREATED
+        )
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(
+            response.data['title'],
+            sample_data['title']
+        )
